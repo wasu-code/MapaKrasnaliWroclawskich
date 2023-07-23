@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>GPX POI Map</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    />
+
+    <style>
+      /* Add any custom CSS styles here */
+      #map {
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
+    <script>
+      var map = L.map("map").setView([51.505, -0.09], 13);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors <br/> <a href="https://www.flaticon.com/free-icons/gnome" title="gnome icons">Gnome icons created by juicy_fish - Flaticon</a>',
+      }).addTo(map);
+
+      var gpxFileURL = "WK.gpx";
+
+      var gpxLayer = new L.GPX(gpxFileURL, {
+        async: true,
+        marker_options: {
+          startIconUrl:
+            "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+          endIconUrl:
+            "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+          shadowUrl:
+            "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+        },
+        polyline_options: {
+          color: "blue",
+          weight: 3,
+        },
+      })
+        .on("addpoint", function (e) {
+          var wptName = e.element.lastElementChild.children[0]; //e.element.childNodes[15].children[0].innerHTML;
+
+          console.log(e);
+          var wptCode = e.target._info.name;
+          var wptShortDesc = e.element.lastElementChild.children[10];
+          var wptLongDesc = e.element.lastElementChild.children[11];
+          var wptEncodedHints = e.element.lastElementChild.children[12];
+          var wptDifficulty = e.element.lastElementChild.children[6];
+          var wptTerrain = e.element.lastElementChild.children[7]; //old: e.element.children[7].children[7];
+
+          var popupContent = `
+                                <p style="text-align:center;">
+                                  <b> ${wptName?.textContent ?? ""} </b><br/>
+                                  <small> ${wptCode ? wptCode : ""}</small>
+                                </p>
+                                <p style="text-align: right;">
+                                  <label for="diff">Difficulty </label><meter id="diff" value='${
+                                    wptDifficulty?.textContent ?? ""
+                                  }' min="0" max="5"></meter> <br/> 
+                                  <label for="terr">Terrain <meter id="terr" value='${
+                                    wptTerrain?.textContent ?? ""
+                                  }' min="0" max="5"></meter>
+                                </p>
+                                ${wptShortDesc?.textContent ?? ""}
+
+                                ${
+                                  wptLongDesc !== undefined &&
+                                  wptLongDesc.textContent.trim() !== ""
+                                    ? "<details><summary>Długi Opis</summary>" +
+                                      wptLongDesc.textContent +
+                                      "</details>"
+                                    : ""
+                                }
+                                ${wptEncodedHints?.textContent ?? ""}
+                                `;
+
+          //console.log(popupContent);
+          e.point._popup.setContent(popupContent);
+        })
+        .on("loaded", function (e) {
+          map.fitBounds(e.target.getBounds());
+        })
+        .addTo(map);
+    </script>
+  </body>
+</html>
