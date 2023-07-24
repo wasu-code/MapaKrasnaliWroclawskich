@@ -18,13 +18,24 @@
 
     <style>
       /* Add any custom CSS styles here */
+      body {
+        margin: 0;
+      }
       #map {
         height: 100vh;
+      }
+      #fullscreen-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
       }
     </style>
   </head>
   <body>
-    <div id="map"></div>
+    <div id="map">
+      <button id="fullscreen-btn">Fullscreen</button>
+    </div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
@@ -124,6 +135,34 @@
 
       markerClusters.addLayer(gpxLayer);
       map.addLayer(markerClusters);
+
+      // Fullscreen button functionality
+      var fullscreenBtn = document.getElementById("fullscreen-btn");
+      fullscreenBtn.addEventListener("click", function () {
+        var mapContainer = document.getElementById("map");
+        if (!document.fullscreenElement) {
+          mapContainer.requestFullscreen().catch((err) => {
+            console.log(
+              `Error attempting to enable full-screen mode: ${err.message} (${err.name})`
+            );
+          });
+        } else {
+          document.exitFullscreen().catch((err) => {
+            console.log(
+              `Error attempting to exit full-screen mode: ${err.message} (${err.name})`
+            );
+          });
+        }
+      });
+
+      // Listen for fullscreen change event to update the button text
+      document.addEventListener("fullscreenchange", function () {
+        if (document.fullscreenElement) {
+          fullscreenBtn.textContent = "Exit Fullscreen";
+        } else {
+          fullscreenBtn.textContent = "Fullscreen";
+        }
+      });
     </script>
   </body>
 </html>
