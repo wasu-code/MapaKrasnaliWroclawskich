@@ -6,6 +6,14 @@
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
     />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"
+    />
 
     <style>
       /* Add any custom CSS styles here */
@@ -19,8 +27,15 @@
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
     <script>
-      var map = L.map("map").setView([51.505, -0.09], 13);
+      //var map = L.map("map").setView([51.505, -0.09], 13);
+      var map = new L.Map("map", {
+        center: new L.LatLng(51.1079, 17.0385),
+        zoom: 2,
+        maxZoom: 18,
+      });
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution:
@@ -28,6 +43,17 @@
       }).addTo(map);
 
       var gpxFileURL = "WK.gpx";
+
+      var markerClusters = L.markerClusterGroup({
+        maxClusterRadious: 1,
+        disableClusteringAtZoom: 16,
+      });
+
+      var customIcon = L.icon({
+        iconUrl: "pin-icon-wpt.png",
+        iconSize: [32, 32], // adjust the size as needed
+        iconAnchor: [16, 32], // adjust the anchor point as needed
+      });
 
       var gpxLayer = new L.GPX(gpxFileURL, {
         async: true,
@@ -48,7 +74,7 @@
           var wptName = e.element.lastElementChild.children[0]; //e.element.childNodes[15].children[0].innerHTML;
 
           console.log(e);
-          var wptCode = e.target._info.name;
+          var wptCode = e.point.options.title;
           var wptShortDesc = e.element.lastElementChild.children[10];
           var wptLongDesc = e.element.lastElementChild.children[11];
           var wptEncodedHints = e.element.lastElementChild.children[12];
@@ -73,7 +99,7 @@
                                 ${
                                   wptLongDesc !== undefined &&
                                   wptLongDesc.textContent.trim() !== ""
-                                    ? "<details><summary>Długi Opis</summary>" +
+                                    ? "</br> <details><summary>Długi Opis</summary>" +
                                       wptLongDesc.textContent +
                                       "</details>"
                                     : ""
@@ -83,11 +109,20 @@
 
           //console.log(popupContent);
           e.point._popup.setContent(popupContent);
+          console.log(e);
+          var m = new L.Marker(
+            e.point._latlng, //new L.LatLng(e.point._latlng.lat, e.point._latlng.lng)
+            { icon: customIcon }
+          ).bindPopup(popupContent);
+          markerClusters.addLayer(m);
         })
         .on("loaded", function (e) {
           map.fitBounds(e.target.getBounds());
-        })
-        .addTo(map);
+        });
+      /*.addTo(map)*/
+
+      markerClusters.addLayer(gpxLayer);
+      map.addLayer(markerClusters);
     </script>
   </body>
 </html>
